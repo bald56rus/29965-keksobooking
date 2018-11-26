@@ -83,13 +83,13 @@
     var maxX = mapWidth - pinWidth;
     var minY = 130;
     var maxY = 630;
-    return { MinX: minX, MinY: minY, MaxX: maxX, MaxY: maxY };
+    return {MinX: minX, MinY: minY, MaxX: maxX, MaxY: maxY};
   };
 
   var getRandomLocation = function (map) {
     var x = getRandom(map.MinX, map.MaxX);
     var y = getRandom(map.MinY, map.MaxY);
-    return { x: x, y: y };
+    return {x: x, y: y};
   };
 
   var generateRandomAd = function (avatar, title, type, checkin, checkout, features, photos) {
@@ -136,8 +136,7 @@
     return ads;
   };
 
-  var renderAdPin = function (ad) {
-    var template = document.querySelector('#pin').content.querySelector('button');
+  var renderAdPin = function (template, ad) {
     var adPin = template.cloneNode(true);
     adPin.style.top = ad.location.y + 'px';
     adPin.style.left = ad.location.x + 'px';
@@ -200,8 +199,9 @@
   var showAdPins = function (ads) {
     var mapPins = document.querySelector('.map__pins');
     var pins = document.createDocumentFragment();
+    var pinTemplate = document.querySelector('#pin').content.querySelector('button');
     for (var i = 0; i < ads.length; i++) {
-      var pin = renderAdPin(ads[i]);
+      var pin = renderAdPin(pinTemplate, ads[i]);
       pins.appendChild(pin);
     }
     mapPins.appendChild(pins);
