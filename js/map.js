@@ -1,6 +1,18 @@
 'use strict';
 
 (function () {
+  var typesMap = {
+    flat: 'Квартира',
+    bungalo: 'Бунгало',
+    house: 'Дом',
+    palace: 'Дворец'
+  };
+  var map = document.querySelector('.map');
+  var mapPins = document.querySelector('.map__pins');
+  var filter = document.querySelector('map__filters-container');
+  var pinTemplate = document.querySelector('#pin').content.querySelector('button');
+  var adTemplate = document.querySelector('#card').content.querySelector('.map__card');
+
   var getRandom = function (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   };
@@ -86,9 +98,9 @@
     return {MinX: minX, MinY: minY, MaxX: maxX, MaxY: maxY};
   };
 
-  var getRandomLocation = function (map) {
-    var x = getRandom(map.MinX, map.MaxX);
-    var y = getRandom(map.MinY, map.MaxY);
+  var getRandomLocation = function (mapWorkspace) {
+    var x = getRandom(mapWorkspace.MinX, mapWorkspace.MaxX);
+    var y = getRandom(mapWorkspace.MinY, mapWorkspace.MaxY);
     return {x: x, y: y};
   };
 
@@ -136,8 +148,8 @@
     return ads;
   };
 
-  var renderAdPin = function (template, ad) {
-    var adPin = template.cloneNode(true);
+  var renderAdPin = function (ad) {
+    var adPin = pinTemplate.cloneNode(true);
     adPin.style.top = ad.location.y + 'px';
     adPin.style.left = ad.location.x + 'px';
     var img = adPin.querySelector('img');
@@ -150,6 +162,11 @@
   var renderAdElement = function (source, destination, value) {
     var element = source.querySelector(destination);
     element.textContent = value;
+  };
+
+  var renderAdImgElement = function (source, destination, value) {
+    var element = source.querySelector(destination);
+    element.src = value;
   };
 
   var renderAdFeatures = function (parent, featureList) {
@@ -175,19 +192,13 @@
     }
   };
 
-  var renderAd = function (template, ad) {
-    var types = {
-      flat: 'Квартира',
-      bungalo: 'Бунгало',
-      house: 'Дом',
-      palace: 'Дворец'
-    };
-    var view = template.cloneNode(true);
-    renderAdElement(view, '.popup__avatar', ad.author.avatar);
+  var renderAd = function (ad) {
+    var view = adTemplate.cloneNode(true);
+    renderAdImgElement(view, '.popup__avatar', ad.author.avatar);
     renderAdElement(view, '.popup__title', ad.offer.title);
     renderAdElement(view, '.popup__text--address', ad.offer.address);
     renderAdElement(view, '.popup__text--price', ad.offer.price + '₽/ночь.');
-    renderAdElement(view, '.popup__type', types[ad.offer.type]);
+    renderAdElement(view, '.popup__type', typesMap[ad.offer.type]);
     renderAdElement(view, '.popup__text--capacity', ad.offer.rooms + ' комнаты для ' + ad.offer.guests + ' гостей');
     renderAdElement(view, '.popup__text--time', 'Заезд после ' + ad.offer.checkin + ', выезд до ' + ad.offer.checkout);
     renderAdFeatures(view, ad.offer.features);
@@ -197,26 +208,20 @@
   };
 
   var showAdPins = function (ads) {
-    var mapPins = document.querySelector('.map__pins');
     var pins = document.createDocumentFragment();
-    var pinTemplate = document.querySelector('#pin').content.querySelector('button');
-    for (var i = 0; i < ads.length; i++) {
-      var pin = renderAdPin(pinTemplate, ads[i]);
+    ads.forEach(function (ad) {
+      var pin = renderAdPin(ad);
       pins.appendChild(pin);
-    }
+    });
     mapPins.appendChild(pins);
   };
 
   var showAd = function (ad) {
-    var map = document.querySelector('.map');
-    var filter = document.querySelector('map__filters-container');
-    var template = document.querySelector('#card').content.querySelector('.map__card');
-    var view = renderAd(template, ad);
+    var view = renderAd(ad);
     map.insertBefore(view, filter);
   };
 
   var activateMap = function () {
-    var map = document.querySelector('.map');
     map.classList.remove('map--faded');
   };
 
