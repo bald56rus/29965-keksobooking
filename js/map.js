@@ -1,6 +1,7 @@
 'use strict';
 
 (function () {
+  var ESC_KEYCODE = 27;
   var typesMap = {
     flat: 'Квартира',
     bungalo: 'Бунгало',
@@ -8,8 +9,12 @@
     palace: 'Дворец'
   };
   var map = document.querySelector('.map');
+  var mainPin = document.querySelector('.map__pin--main');
   var mapPins = document.querySelector('.map__pins');
-  var filter = document.querySelector('map__filters-container');
+  var adForm = document.querySelector('.ad-form');
+  var adFormFieldList = adForm.querySelectorAll('input, select');
+  var filterForm = document.querySelector('.map__filters-container');
+  var filterFormFieldList = filterForm.querySelectorAll('input, select');
   var pinTemplate = document.querySelector('#pin').content.querySelector('button');
   var adTemplate = document.querySelector('#card').content.querySelector('.map__card');
 
@@ -211,22 +216,83 @@
     var pins = document.createDocumentFragment();
     ads.forEach(function (ad) {
       var pin = renderAdPin(ad);
+      pin.addEventListener('click', function () {
+        showAdPopup(ad);
+      });
       pins.appendChild(pin);
     });
     mapPins.appendChild(pins);
   };
 
-  var showAd = function (ad) {
-    var view = renderAd(ad);
-    map.insertBefore(view, filter);
+  var closeAdPopup = function () {
+    var adPopup = document.querySelector('.map__card');
+    if (!adPopup) {
+      return;
+    }
+    adPopup.remove();
+    document.removeEventListener('keydown', escPressHandler);
+  };
+
+  var escPressHandler = function (evt) {
+    if (evt.keyCode === ESC_KEYCODE) {
+      closeAdPopup();
+    }
+  };
+
+  var showAdPopup = function (ad) {
+    closeAdPopup();
+    var adPopup = renderAd(ad);
+    var closeButton = adPopup.querySelector('.popup__close');
+    closeButton.addEventListener('click', closeAdPopup);
+    document.addEventListener('keydown', escPressHandler);
+    map.insertBefore(adPopup, filterForm);
   };
 
   var activateMap = function () {
+    mainPin.removeEventListener('mouseup', mainPinMoveHandler);
     map.classList.remove('map--faded');
+    var ads = generateRandomAds();
+    showAdPins(ads);
   };
 
-  activateMap();
-  var ads = generateRandomAds();
-  showAdPins(ads);
-  showAd(ads[0]);
+  var getPinLocation = function () {
+    var rect = mainPin.getBoundingClientRect();
+    var mainPinAffterStyle = getComputedStyle(mainPin, '::after');
+    var x = mainPin.offsetLeft + (rect.width / 2);
+    var y = mainPin.offsetTop + rect.height + parseFloat(mainPinAffterStyle.height);
+    var location = adForm.querySelector('#address');
+    location.value = x + ', ' + y;
+  };
+
+  var mainPinMoveHandler = function () {
+    activateMap();
+    getPinLocation();
+    toggleFormState(adForm, false);
+    toggleFieldsState(adFormFieldList, false);
+    toggleFormState(filterForm, false);
+    toggleFieldsState(filterFormFieldList, false);
+  };
+
+  var toggleFormState = function (form, isDisabled) {
+    if (isDisabled) {
+      form.classList.add('ad-form--disabled');
+    } else {
+      form.classList.remove('ad-form--disabled');
+    }
+  };
+
+  var toggleFieldsState = function (fields, isDisabled) {
+    fields.forEach(function (field) {
+      field.disabled = isDisabled;
+    });
+  };
+
+  var init = function () {
+    mainPin.addEventListener('mouseup', mainPinMoveHandler);
+    toggleFormState(adForm, true);
+    toggleFieldsState(adFormFieldList, true);
+    toggleFormState(filterForm, true);
+    toggleFieldsState(filterFormFieldList, true);
+  };
+  init();
 })();
