@@ -290,7 +290,7 @@
         break;
       }
     }
-    priceField.minPrice = minPrice;
+    priceField.min = minPrice;
     priceField.placeholder = minPrice;
   };
   var timeChangeHandler = function (evt) {
