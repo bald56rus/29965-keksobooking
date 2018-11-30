@@ -32,6 +32,7 @@
   var timeoutField = adForm.querySelector('#timeout');
   var roomQuantityField = adForm.querySelector('#room_number');
   var capacityField = adForm.querySelector('#capacity');
+  var formResetBtn = adForm.querySelector('.ad-form__reset');
 
   var getRandom = function (minPrice, max) {
     return Math.floor(Math.random() * (max - minPrice + 1)) + minPrice;
@@ -249,18 +250,34 @@
     var mainPinAffterStyle = getComputedStyle(mainPin, '::after');
     var x = mainPin.offsetLeft + mainPin.offsetWidth / 2;
     var y = mainPin.offsetTop;
-    y += !isCircle ? mainPin.offsetHeight / 2 : mainPin.offsetHeight + parseFloat(mainPinAffterStyle.height);
+    y += isCircle ? mainPin.offsetHeight / 2 : mainPin.offsetHeight + parseFloat(mainPinAffterStyle.height);
     return {x: x, y: y};
   };
-  var toggleMapState = function (isEnabled) {
-    if (isEnabled) {
+  var toggleMapState = function (isDisabled) {
+    toggleFormState(adForm, isDisabled);
+    toggleFieldsState(adFormFieldList, isDisabled);
+    toggleFormState(filterForm, isDisabled);
+    toggleFieldsState(filterFormFieldList, isDisabled);
+    if (isDisabled) {
+      clearSimilarAds();
+      map.classList.add('map--faded');
+      mainPin.addEventListener('mouseup', mainPinMoveHandler);
+    } else {
       map.classList.remove('map--faded');
-      var ads = generateRandomAds();
-      showAdPins(ads);
-      return;
+      showAdPins(generateRandomAds());
+      typeChangeHandler();
+      timeChangeHandler();
+      roomQuantityChangeHandler();
+      typeField.addEventListener('change', typeChangeHandler);
+      timeinField.addEventListener('change', timeChangeHandler);
+      timeoutField.addEventListener('change', timeChangeHandler);
+      roomQuantityField.addEventListener('change', roomQuantityChangeHandler);
+      capacityField.addEventListener('change', capacityChangeHandler);
+      mainPin.removeEventListener('mouseup', mainPinMoveHandler);
+      formResetBtn.addEventListener('click', resetBtnClickHandler);
     }
-    map.classList.add('map--faded');
-    clearSimilarAds();
+    var pinLocation = getPinLocation(map.classList.contains('map--faded'));
+    locationField.value = pinLocation.x + ', ' + pinLocation.y;
   };
   var toggleFormState = function (form, isDisabled) {
     if (isDisabled) {
@@ -312,30 +329,16 @@
       option.disabled = allowedGuests.indexOf(parseInt(option.value, 10)) < 0;
     });
   };
-  var activateAdForm = function () {
-    toggleFormState(adForm, false);
-    toggleFieldsState(adFormFieldList, false);
-    var pinLocation = getPinLocation(map.classList.contains('map--faded'));
-    locationField.value = pinLocation.x + ', ' + pinLocation.y;
-    typeField.addEventListener('change', typeChangeHandler);
-    timeinField.addEventListener('change', timeChangeHandler);
-    timeoutField.addEventListener('change', timeChangeHandler);
-    roomQuantityField.addEventListener('change', roomQuantityChangeHandler);
-    typeChangeHandler();
-    timeChangeHandler();
-    roomQuantityChangeHandler();
-  };
-  var activateFilterForm = function () {
-    toggleFormState(filterForm, false);
-    toggleFieldsState(filterFormFieldList, false);
+  var capacityChangeHandler = function () {
+    capacityField.setCustomValidity('');
+    var allowedGuests = roomGuestCapacity[roomQuantityField.value];
+    if (allowedGuests.indexOf(parseInt(capacityField.value, 10)) === -1) {
+      capacityField.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
+    }
   };
   var mainPinMoveHandler = function () {
-    toggleMapState(true);
-    activateAdForm();
-    activateFilterForm();
-    mainPin.removeEventListener('mouseup', mainPinMoveHandler);
+    toggleMapState(false);
   };
-
   var clearSimilarAds = function () {
     mapPins.querySelectorAll('.map__pin').forEach(function (pin) {
       if (pin !== mainPin) {
@@ -343,13 +346,8 @@
       }
     });
   };
-
-  var init = function () {
-    toggleFormState(adForm, true);
-    toggleFieldsState(adFormFieldList, true);
-    toggleFormState(filterForm, true);
-    toggleFieldsState(filterFormFieldList, true);
-    mainPin.addEventListener('mouseup', mainPinMoveHandler);
+  var resetBtnClickHandler = function () {
+    toggleMapState(true);
   };
-  init();
+  toggleMapState(true);
 })();
