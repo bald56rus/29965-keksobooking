@@ -172,13 +172,13 @@
     }
   };
   var renderAdPhotos = function (parent, photoList) {
-    var photos = parent.querySelector('.popup__photos');
+    var destination = parent.querySelector('.popup__photos');
     var template = photos.querySelector('.popup__photo');
     photos.innerHTML = '';
     for (var i = 0; i < photoList.length; i++) {
       var photo = template.cloneNode(true);
       photo.src = photoList[i];
-      photos.appendChild(photo);
+      destination.appendChild(photo);
     }
   };
   var createPopup = function (ad) {
