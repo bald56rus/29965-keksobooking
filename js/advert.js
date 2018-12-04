@@ -1,6 +1,9 @@
 'use strict';
 
 (function () {
+  var PIN_WIDTH = 65;
+  var PIN_HEIGHT = 87;
+  var ROUND_PIN_HEIGHT = 65;
   var roomGuestCapacity = {
     '1': [1],
     '2': [1, 2],
@@ -18,7 +21,9 @@
   var capacity = advertForm.querySelector('#capacity');
   var resetBtn = advertForm.querySelector('.ad-form__reset');
 
-  var setPinLocation = function (x, y) {
+  var setPinLocation = function (isCircle, x, y) {
+    x += PIN_WIDTH / 2;
+    y += isCircle ? ROUND_PIN_HEIGHT / 2 : PIN_HEIGHT;
     location.value = x + ', ' + y;
   };
   var typeChangeHandler = function () {
@@ -61,8 +66,8 @@
     roomQuantity.removeEventListener('change', roomQuantityChangeHandler);
     capacity.removeEventListener('change', capacityChangeHandler);
     resetBtn.removeEventListener('click', resetBtnHandler);
-    var pinLocation = window.map.getPinLocation(true);
-    setPinLocation(pinLocation.x, pinLocation.y);
+    var pinLocation = window.map.getPinLocation();
+    setPinLocation(true, pinLocation.x, pinLocation.y);
   };
   var unlock = function () {
     type.addEventListener('change', typeChangeHandler);
@@ -81,7 +86,9 @@
     window.map.lock();
     window.popup.closePopup();
     window.similarAdverts.clearSimilarAdverts();
-    lock();
+    setTimeout(function () {
+      lock();
+    }, 1);
   };
 
   window.advert = {
