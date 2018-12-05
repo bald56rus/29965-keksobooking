@@ -28,10 +28,10 @@
     };
     var mouseUpHandler = function () {
       if (isPinMoved) {
-        window.advert.setPinLocation(current.x, current.y);
+        window.advert.setPinLocation(false, current.x, current.y);
       } else {
         var pinLocation = window.map.getPinLocation();
-        window.advert.setPinLocation(pinLocation.x, pinLocation.y);
+        window.advert.setPinLocation(false, pinLocation.x, pinLocation.y);
       }
       if (window.map.isDisabled) {
         window.similarAdverts.showSimilarAdverts();

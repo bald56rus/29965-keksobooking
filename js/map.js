@@ -14,16 +14,14 @@
   };
 
   var resetPinLocation = function () {
-    mainPin.style.top = 375 + 'px';
-    mainPin.style.left = 570 + 'px';
+    var x = 570;
+    var y = 375;
+    mainPin.style.top = y + 'px';
+    mainPin.style.left = x + 'px';
   };
 
-  var getPinLocation = function (isCircle) {
-    var mainPinAffterStyle = getComputedStyle(mainPin, '::after');
-    var x = mainPin.offsetLeft + mainPin.offsetWidth / 2;
-    var y = mainPin.offsetTop;
-    y += isCircle ? mainPin.offsetHeight / 2 : mainPin.offsetHeight + parseFloat(mainPinAffterStyle.height);
-    return {x: x, y: y};
+  var getPinLocation = function () {
+    return {x: mainPin.offsetLeft, y: mainPin.offsetTop};
   };
 
   var lock = function () {
