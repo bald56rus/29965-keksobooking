@@ -1,6 +1,9 @@
 'use strict';
 
 (function () {
+  var main = document.querySelector('main');
+  var activeErrorPopup;
+  var errorPopupTemplate = document.querySelector('#error').content.querySelector('.error');
   var typesMap = {
     flat: {name: 'Квартира', minPrice: 1000},
     bungalo: {name: 'Бунгало', minPrice: 0},
@@ -50,6 +53,31 @@
       field.disabled = isDisabled;
     });
   };
+  var keydownHandler = function (keydownEvt, keyCode, action) {
+    if (keydownEvt.keyCode === keyCode) {
+      action();
+    }
+  };
+  var errorPopupCloseHandler = function () {
+    activeErrorPopup.remove();
+    document.removeEventListener('click', errorPopupCloseHandler);
+  };
+
+  var escPressHandler = function (evt) {
+    window.utils.keydownHandler(evt, 27, errorPopupCloseHandler);
+    document.removeEventListener('keydown', escPressHandler);
+  };
+
+  var errorHandler = function (message) {
+    activeErrorPopup = errorPopupTemplate.cloneNode(true);
+    activeErrorPopup.querySelector('.error__message').textContent = message;
+    var errorCloseBtn = activeErrorPopup.querySelector('.error__button');
+    errorCloseBtn.addEventListener('click', errorPopupCloseHandler);
+    document.addEventListener('click', errorPopupCloseHandler);
+    document.addEventListener('keydown', escPressHandler);
+    main.appendChild(activeErrorPopup);
+  };
+
   window.utils = {
     typesMap: typesMap,
     getRandom: getRandom,
@@ -57,6 +85,8 @@
     getRandomValue: getRandomValue,
     getRandomValues: getRandomValues,
     toggleFormState: toggleFormState,
-    toggleFieldsState: toggleFieldsState
+    toggleFieldsState: toggleFieldsState,
+    keydownHandler: keydownHandler,
+    errorHandler: errorHandler
   };
 })();
