@@ -16,28 +16,32 @@
     var element = source.querySelector(destination);
     element.src = value;
   };
-  var createFeatures = function (parent, featureList) {
+  var createFeatures = function (parent, features) {
     var destination = parent.querySelector('.popup__features');
-    if (featureList.length === 0) {
+    if (features.length === 0) {
       destination.remove();
       return;
     }
     destination.innerHTML = '';
     var template = document.createElement('li');
     template.classList.add('popup__feature');
-    for (var i = 0; i < featureList.length; i++) {
+    for (var i = 0; i < features.length; i++) {
       var feature = template.cloneNode(true);
-      feature.classList.add('popup__feature--' + featureList[i]);
+      feature.classList.add('popup__feature--' + features[i]);
       destination.appendChild(feature);
     }
   };
-  var createPhotos = function (parent, photoList) {
+  var createPhotos = function (parent, photos) {
     var destination = parent.querySelector('.popup__photos');
+    if (photos.length === 0) {
+      destination.remove();
+      return;
+    }
     var template = destination.querySelector('.popup__photo');
     destination.innerHTML = '';
-    for (var i = 0; i < photoList.length; i++) {
+    for (var i = 0; i < photos.length; i++) {
       var photo = template.cloneNode(true);
-      photo.src = photoList[i];
+      photo.src = photos[i];
       destination.appendChild(photo);
     }
   };
@@ -69,17 +73,15 @@
     document.removeEventListener('keydown', escPressHandler);
   };
   var escPressHandler = function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      closePopupHandler();
-    }
+    window.utils.keydownHandler(evt, ESC_KEYCODE, closePopupHandler);
   };
   var showPopupHandler = function (pin, advert) {
     closePopupHandler();
     pinActive = pin;
     pinActive.classList.add('map__pin--active');
     popupActive = createPopup(advert);
-    document.addEventListener('keydown', escPressHandler);
     map.insertBefore(popupActive, filter);
+    document.addEventListener('keydown', escPressHandler);
   };
   window.popup = {
     showPopup: showPopupHandler,

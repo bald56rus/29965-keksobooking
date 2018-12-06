@@ -3,12 +3,14 @@
 (function () {
   var isDisabled = true;
   var workspace = {minX: 0, maxX: 1135, minY: 130, maxY: 630};
+  var main = document.querySelector('main');
   var map = document.querySelector('.map');
   var mainPin = document.querySelector('.map__pin--main');
 
   window.map = {
     isDisabled: isDisabled,
     workspace: workspace,
+    main: main,
     map: map,
     mainPin: mainPin
   };

@@ -73,6 +73,7 @@
       location: location
     };
   };
+
   var generateRandomAdverts = function () {
     var adverts = [];
     var presetAvatars = avatars.slice();
@@ -84,20 +85,25 @@
     return adverts;
   };
 
-  var showSimilarAdverts = function () {
-    var adverts = generateRandomAdverts();
+  var successHandler = function (adverts) {
     var pins = document.createDocumentFragment();
     adverts.forEach(function (advert) {
-      var advertPin = createAdvertPin(advert);
-      advertPin.addEventListener('click', function () {
-        window.popup.showPopup(advertPin, advert);
-      });
-      pins.appendChild(advertPin);
-      similarAdverts.push(advertPin);
+      if (advert.hasOwnProperty('offer')) {
+        var advertPin = createAdvertPin(advert);
+        advertPin.addEventListener('click', function () {
+          window.popup.showPopup(advertPin, advert);
+        });
+        pins.appendChild(advertPin);
+        similarAdverts.push(advertPin);
+      }
     });
     advertPins.appendChild(pins);
     window.utils.toggleFormState(filterForm, false);
     window.utils.toggleFieldsState(filterFormFields, false);
+  };
+
+  var showSimilarAdverts = function () {
+    window.backend.get('https://js.dump.academy/keksobooking/data', successHandler, window.utils.errorHandler);
   };
 
   var clearSimilarAdverts = function () {
@@ -117,5 +123,4 @@
   };
 
   clearSimilarAdverts();
-
 })();

@@ -19,7 +19,8 @@
   var timeout = advertForm.querySelector('#timeout');
   var roomQuantity = advertForm.querySelector('#room_number');
   var capacity = advertForm.querySelector('#capacity');
-  var resetBtn = advertForm.querySelector('.ad-form__reset');
+  var successTemplate = document.querySelector('#success').content.querySelector('.success');
+  var activeSuccessPopup;
 
   var setPinLocation = function (isCircle, x, y) {
     x += PIN_WIDTH / 2;
@@ -57,6 +58,39 @@
       capacity.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
     }
   };
+
+  var successPopupHandler = function () {
+    activeSuccessPopup.remove();
+    advertForm.reset();
+    lock();
+    window.map.lock();
+    document.removeEventListener('click', successPopupHandler);
+  };
+
+  var escPressHandler = function (evt) {
+    window.utils.keydownHandler(evt, 27, successPopupHandler);
+    document.removeEventListener('keydown', escPressHandler);
+  };
+
+  var successHandler = function () {
+    activeSuccessPopup = successTemplate.cloneNode(true);
+    activeSuccessPopup.addEventListener('click', successPopupHandler);
+    document.addEventListener('keydown', escPressHandler);
+    window.map.main.appendChild(activeSuccessPopup);
+  };
+  var submitFormHandler = function (evt) {
+    evt.preventDefault();
+    var url = 'https://js.dump.academy/keksobooking';
+    window.backend.post(url, new FormData(advertForm), successHandler, window.utils.errorHandler);
+  };
+  var resetFormHandler = function () {
+    window.map.lock();
+    window.popup.closePopup();
+    window.similarAdverts.clearSimilarAdverts();
+    setTimeout(function () {
+      lock();
+    }, 1);
+  };
   var lock = function () {
     window.utils.toggleFormState(advertForm, true);
     window.utils.toggleFieldsState(advertFormFields, true);
@@ -65,7 +99,9 @@
     timeout.removeEventListener('change', timeChangeHandler);
     roomQuantity.removeEventListener('change', roomQuantityChangeHandler);
     capacity.removeEventListener('change', capacityChangeHandler);
-    resetBtn.removeEventListener('click', resetBtnHandler);
+    advertForm.removeEventListener('submit', submitFormHandler);
+    advertForm.removeEventListener('reset', resetFormHandler);
+
     var pinLocation = window.map.getPinLocation();
     setPinLocation(true, pinLocation.x, pinLocation.y);
   };
@@ -75,20 +111,13 @@
     timeout.addEventListener('change', timeChangeHandler);
     roomQuantity.addEventListener('change', roomQuantityChangeHandler);
     capacity.addEventListener('change', capacityChangeHandler);
-    resetBtn.addEventListener('click', resetBtnHandler);
+    advertForm.addEventListener('submit', submitFormHandler);
+    advertForm.addEventListener('reset', resetFormHandler);
     typeChangeHandler();
     timeChangeHandler();
     roomQuantityChangeHandler();
     window.utils.toggleFormState(advertForm, false);
     window.utils.toggleFieldsState(advertFormFields, false);
-  };
-  var resetBtnHandler = function () {
-    window.map.lock();
-    window.popup.closePopup();
-    window.similarAdverts.clearSimilarAdverts();
-    setTimeout(function () {
-      lock();
-    }, 1);
   };
 
   window.advert = {
