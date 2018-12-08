@@ -41,18 +41,6 @@
     }
     return destination;
   };
-  var toggleFormState = function (form, isDisabled) {
-    if (isDisabled) {
-      form.classList.add('ad-form--disabled');
-    } else {
-      form.classList.remove('ad-form--disabled');
-    }
-  };
-  var toggleFieldsState = function (fields, isDisabled) {
-    fields.forEach(function (field) {
-      field.disabled = isDisabled;
-    });
-  };
   var keydownHandler = function (keydownEvt, keyCode, action) {
     if (keydownEvt.keyCode === keyCode) {
       action();
@@ -84,8 +72,6 @@
     shuffleArray: shuffleArray,
     getRandomValue: getRandomValue,
     getRandomValues: getRandomValues,
-    toggleFormState: toggleFormState,
-    toggleFieldsState: toggleFieldsState,
     keydownHandler: keydownHandler,
     errorHandler: errorHandler
   };
