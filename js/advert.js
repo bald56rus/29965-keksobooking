@@ -7,23 +7,29 @@
     '3': [1, 2, 3],
     '100': [0]
   };
+  var typeMap = window.utils.typeMap;
+  var keyCodeMap = window.utils.keyCodeMap;
   var advertPostedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
   var advertCancelEvent = new CustomEvent('advert-cancel', {'bubbles': true, 'cancelable': true});
-  var advertForm = document.querySelector('.ad-form');
-  var advertFormFields = advertForm.querySelectorAll('input, select');
-  var location = advertForm.querySelector('#address');
-  var type = advertForm.querySelector('#type');
-  var price = advertForm.querySelector('#price');
-  var timein = advertForm.querySelector('#timein');
-  var timeout = advertForm.querySelector('#timeout');
-  var roomQuantity = advertForm.querySelector('#room_number');
-  var capacity = advertForm.querySelector('#capacity');
+  var form = document.querySelector('.ad-form');
+  var url = form.action;
+  var advertFormFields = form.querySelectorAll('input, select');
+  var location = form.querySelector('#address');
+  var type = form.querySelector('#type');
+  var price = form.querySelector('#price');
+  var timein = form.querySelector('#timein');
+  var timeout = form.querySelector('#timeout');
+  var roomQuantity = form.querySelector('#room_number');
+  var capacity = form.querySelector('#capacity');
+  var popupTemplate = document.querySelector('#success').content.querySelector('.success');
+  var activePopup;
+  var errorHandler = window.utils.errorHandler;
 
   var setPinPosition = function (position) {
     location.value = position.x + ', ' + position.y;
   };
   var typeChangeHandler = function () {
-    var minPrice = window.utils.typesMap[type.value].minPrice;
+    var minPrice = typeMap[type.value].minPrice;
     price.min = minPrice;
     price.placeholder = minPrice;
   };
@@ -53,43 +59,56 @@
       capacity.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
     }
   };
-  var advertFormResetHandler = function (evt) {
-    evt.preventDefault();
+  var formResetHandler = function () {
     deactivateForm();
     setTimeout(function () {
-      advertForm.dispatchEvent(advertCancelEvent);
+      form.dispatchEvent(advertCancelEvent);
     }, 1);
   };
-  var advertFormSubmitHandler = function (evt) {
-    evt.preventDefault();
+  var closePopupHandler = function () {
+    activePopup.remove();
+    document.removeEventListener('click', closePopupHandler);
+    document.removeEventListener('keydown', escPressHandler);
+  };
+  var escPressHandler = window.utils.isKeyPressed(keyCodeMap.ESC, closePopupHandler);
+  var advertPostedHandler = function () {
     deactivateForm();
-    advertForm.reset();
-    advertForm.dispatchEvent(advertPostedEvent);
+    form.reset();
+    form.dispatchEvent(advertPostedEvent);
+    activePopup = popupTemplate.cloneNode(true);
+    document.querySelector('main').appendChild(activePopup);
+    document.addEventListener('click', closePopupHandler);
+    document.addEventListener('keydown', escPressHandler);
+  };
+  var formSubmitHandler = function (evt) {
+    evt.preventDefault();
+    var advert = new FormData(form);
+    window.backend.post(url, advert, advertPostedHandler, errorHandler);
   };
   var activateForm = function () {
     typeChangeHandler();
     timeChangeHandler();
     roomQuantityChangeHandler();
     capacityChangeHandler();
-    advertForm.addEventListener('reset', advertFormResetHandler);
-    advertForm.addEventListener('submit', advertFormSubmitHandler);
+    form.addEventListener('reset', formResetHandler);
+    form.addEventListener('submit', formSubmitHandler);
     type.addEventListener('change', typeChangeHandler);
     timein.addEventListener('change', timeChangeHandler);
     timeout.addEventListener('change', timeChangeHandler);
     roomQuantity.addEventListener('change', roomQuantityChangeHandler);
     capacity.addEventListener('change', capacityChangeHandler);
-    advertForm.classList.remove('ad-form--disabled');
+    form.classList.remove('ad-form--disabled');
     advertFormFields.forEach(function (field) {
       field.disabled = false;
     });
   };
   var deactivateForm = function () {
-    advertForm.classList.add('ad-form--disabled');
+    form.classList.add('ad-form--disabled');
     advertFormFields.forEach(function (field) {
       field.disabled = true;
     });
-    advertForm.removeEventListener('reset', advertFormResetHandler);
-    advertForm.removeEventListener('submit', advertFormSubmitHandler);
+    form.removeEventListener('reset', formResetHandler);
+    form.removeEventListener('submit', formSubmitHandler);
     type.removeEventListener('change', typeChangeHandler);
     timein.removeEventListener('change', timeChangeHandler);
     timeout.removeEventListener('change', timeChangeHandler);

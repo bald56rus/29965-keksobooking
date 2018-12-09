@@ -8,7 +8,7 @@
       return onLoad(xhr.response);
     });
     xhr.addEventListener('error', function () {
-      return onError(xhr.responseText);
+      return onError(xhr.response);
     });
     xhr.open('GET', url);
     xhr.send();
@@ -20,7 +20,7 @@
       return onLoad(xhr.response);
     });
     xhr.addEventListener('error', function () {
-      return onError(xhr.responseText);
+      return onError(xhr.response);
     });
     xhr.open('POST', url);
     xhr.send(data);

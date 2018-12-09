@@ -1,7 +1,6 @@
 'use strict';
 
 (function () {
-  var ESC_KEYCODE = 27;
   var popupTemplate = document.querySelector('#card').content.querySelector('.map__card');
   var pinTemplate = document.querySelector('#pin').content.querySelector('button');
   var pins = document.querySelector('.map__pins');
@@ -10,6 +9,9 @@
   var popupActive = null;
   var pinActive;
   var similarAdverts = [];
+  var typeMap = window.utils.typeMap;
+  var keyCodeMap = window.utils.keyCodeMap;
+  var errorHandler = window.utils.errorHandler;
   var createFeatures = function (parent, features) {
     var destination = parent.querySelector('.popup__features');
     if (features.length === 0) {
@@ -39,11 +41,6 @@
       destination.appendChild(advertPhoto);
     });
   };
-  var escPressHandler = function (evt) {
-    if (evt.keyCode === ESC_KEYCODE) {
-      closePopup();
-    }
-  };
   var closePopup = function () {
     if (popupActive === null) {
       return;
@@ -54,13 +51,14 @@
     pinActive = null;
     document.removeEventListener('keydown', escPressHandler);
   };
+  var escPressHandler = window.utils.isKeyPressed(keyCodeMap.ESC, closePopup);
   var createPopup = function (advert) {
     var popup = popupTemplate.cloneNode(true);
     popup.querySelector('.popup__avatar').src = advert.author.avatar;
     popup.querySelector('.popup__title').textContent = advert.offer.title;
     popup.querySelector('.popup__text--address').textContent = advert.offer.address;
     popup.querySelector('.popup__text--price').textContent = advert.offer.price + '₽/ночь.';
-    popup.querySelector('.popup__type').textContent = window.utils.typesMap[advert.offer.type].name;
+    popup.querySelector('.popup__type').textContent = typeMap[advert.offer.type].name;
     popup.querySelector('.popup__text--capacity').textContent = advert.offer.rooms + ' комнаты для ' + advert.offer.guests + ' гостей';
     popup.querySelector('.popup__text--time', 'Заезд после ' + advert.offer.checkin + ', выезд до ' + advert.offer.checkout);
     createFeatures(popup, advert.offer.features);
@@ -113,4 +111,8 @@
     showSimilarAdverts: showSimilarAdverts,
     clearSimilarAdverts: clearSimilarAdverts
   };
+  var initialize = function () {
+    window.backend.get('https://js.dump.academy/keksobooking/data', window.data.set, errorHandler);
+  };
+  initialize();
 })();
