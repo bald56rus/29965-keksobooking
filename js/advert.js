@@ -1,33 +1,35 @@
 'use strict';
 
 (function () {
-  var PIN_WIDTH = 65;
-  var PIN_HEIGHT = 87;
-  var ROUND_PIN_HEIGHT = 65;
   var roomGuestCapacity = {
     '1': [1],
     '2': [1, 2],
     '3': [1, 2, 3],
     '100': [0]
   };
-  var advertForm = document.querySelector('.ad-form');
-  var advertFormFields = advertForm.querySelectorAll('input, select');
-  var location = advertForm.querySelector('#address');
-  var type = advertForm.querySelector('#type');
-  var price = advertForm.querySelector('#price');
-  var timein = advertForm.querySelector('#timein');
-  var timeout = advertForm.querySelector('#timeout');
-  var roomQuantity = advertForm.querySelector('#room_number');
-  var capacity = advertForm.querySelector('#capacity');
-  var resetBtn = advertForm.querySelector('.ad-form__reset');
+  var typeMap = window.utils.typeMap;
+  var keyCodeMap = window.utils.keyCodeMap;
+  var advertPostedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
+  var advertCancelEvent = new CustomEvent('advert-cancel', {'bubbles': true, 'cancelable': true});
+  var form = document.querySelector('.ad-form');
+  var url = form.action;
+  var advertFormFields = form.querySelectorAll('input, select');
+  var location = form.querySelector('#address');
+  var type = form.querySelector('#type');
+  var price = form.querySelector('#price');
+  var timein = form.querySelector('#timein');
+  var timeout = form.querySelector('#timeout');
+  var roomQuantity = form.querySelector('#room_number');
+  var capacity = form.querySelector('#capacity');
+  var popupTemplate = document.querySelector('#success').content.querySelector('.success');
+  var activePopup;
+  var errorHandler = window.utils.errorHandler;
 
-  var setPinLocation = function (isCircle, x, y) {
-    x += PIN_WIDTH / 2;
-    y += isCircle ? ROUND_PIN_HEIGHT / 2 : PIN_HEIGHT;
-    location.value = x + ', ' + y;
+  var setPinPosition = function (position) {
+    location.value = position.x + ', ' + position.y;
   };
   var typeChangeHandler = function () {
-    var minPrice = window.utils.typesMap[type.value].minPrice;
+    var minPrice = typeMap[type.value].minPrice;
     price.min = minPrice;
     price.placeholder = minPrice;
   };
@@ -57,45 +59,69 @@
       capacity.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
     }
   };
-  var lock = function () {
-    window.utils.toggleFormState(advertForm, true);
-    window.utils.toggleFieldsState(advertFormFields, true);
-    type.removeEventListener('change', typeChangeHandler);
-    timein.removeEventListener('change', timeChangeHandler);
-    timeout.removeEventListener('change', timeChangeHandler);
-    roomQuantity.removeEventListener('change', roomQuantityChangeHandler);
-    capacity.removeEventListener('change', capacityChangeHandler);
-    resetBtn.removeEventListener('click', resetBtnHandler);
-    var pinLocation = window.map.getPinLocation();
-    setPinLocation(true, pinLocation.x, pinLocation.y);
+  var formResetHandler = function () {
+    deactivateForm();
+    setTimeout(function () {
+      form.dispatchEvent(advertCancelEvent);
+    }, 1);
   };
-  var unlock = function () {
+  var closePopupHandler = function () {
+    activePopup.remove();
+    document.removeEventListener('click', closePopupHandler);
+    document.removeEventListener('keydown', escPressHandler);
+  };
+  var escPressHandler = window.utils.isKeyPressed(keyCodeMap.ESC, closePopupHandler);
+  var advertPostedHandler = function () {
+    deactivateForm();
+    form.reset();
+    form.dispatchEvent(advertPostedEvent);
+    activePopup = popupTemplate.cloneNode(true);
+    document.querySelector('main').appendChild(activePopup);
+    document.addEventListener('click', closePopupHandler);
+    document.addEventListener('keydown', escPressHandler);
+  };
+  var formSubmitHandler = function (evt) {
+    evt.preventDefault();
+    var advert = new FormData(form);
+    window.backend.post(url, advert, advertPostedHandler, errorHandler);
+  };
+  var activateForm = function () {
+    typeChangeHandler();
+    timeChangeHandler();
+    roomQuantityChangeHandler();
+    capacityChangeHandler();
+    form.addEventListener('reset', formResetHandler);
+    form.addEventListener('submit', formSubmitHandler);
     type.addEventListener('change', typeChangeHandler);
     timein.addEventListener('change', timeChangeHandler);
     timeout.addEventListener('change', timeChangeHandler);
     roomQuantity.addEventListener('change', roomQuantityChangeHandler);
     capacity.addEventListener('change', capacityChangeHandler);
-    resetBtn.addEventListener('click', resetBtnHandler);
-    typeChangeHandler();
-    timeChangeHandler();
-    roomQuantityChangeHandler();
-    window.utils.toggleFormState(advertForm, false);
-    window.utils.toggleFieldsState(advertFormFields, false);
+    form.classList.remove('ad-form--disabled');
+    advertFormFields.forEach(function (field) {
+      field.disabled = false;
+    });
   };
-  var resetBtnHandler = function () {
-    window.map.lock();
-    window.popup.closePopup();
-    window.similarAdverts.clearSimilarAdverts();
-    setTimeout(function () {
-      lock();
-    }, 1);
+  var deactivateForm = function () {
+    form.classList.add('ad-form--disabled');
+    advertFormFields.forEach(function (field) {
+      field.disabled = true;
+    });
+    form.removeEventListener('reset', formResetHandler);
+    form.removeEventListener('submit', formSubmitHandler);
+    type.removeEventListener('change', typeChangeHandler);
+    timein.removeEventListener('change', timeChangeHandler);
+    timeout.removeEventListener('change', timeChangeHandler);
+    roomQuantity.removeEventListener('change', roomQuantityChangeHandler);
+    capacity.removeEventListener('change', capacityChangeHandler);
   };
-
   window.advert = {
-    setPinLocation: setPinLocation,
-    lock: lock,
-    unlock: unlock
+    activate: activateForm,
+    deactivate: deactivateForm,
+    setPinPosition: setPinPosition
   };
-
-  lock();
+  var initialize = function () {
+    setPinPosition(window.map.getPinPosition());
+  };
+  initialize();
 })();

@@ -1,48 +1,39 @@
 'use strict';
 
 (function () {
-  var pin = window.map.mainPin;
-  var workspace = window.map.workspace;
-  var mouseDownHandler = function (evt) {
-    var isPinMoved = false;
-    var current = {x: evt.clientX, y: evt.clientY};
+  var pin = window.map.pin;
+  var pinPosition = {};
+  pin.addEventListener('mousedown', function (evt) {
+    var startPosition = {x: evt.clientX, y: evt.clientY};
     var mouseMoveHandler = function (moveEvt) {
+      moveEvt.preventDefault();
       var offset = {
-        x: current.x - moveEvt.clientX,
-        y: current.y - moveEvt.clientY
+        x: startPosition.x - moveEvt.clientX,
+        y: startPosition.y - moveEvt.clientY
       };
-      if (Math.abs(offset.x) < 10 && Math.abs(offset.y) < 10) {
-        return;
-      }
-      isPinMoved = true;
-      var top = pin.offsetTop - offset.y;
-      if (top >= workspace.minY && top <= workspace.maxY) {
-        current.y = moveEvt.clientY;
-        pin.style.top = top + 'px';
-      }
-      var left = pin.offsetLeft - offset.x;
-      if (left >= workspace.minX && left <= workspace.maxX) {
-        current.x = moveEvt.clientX;
-        pin.style.left = left + 'px';
-      }
+      startPosition = {x: moveEvt.clientX, y: moveEvt.clientY};
+      var top = (pin.offsetTop - offset.y);
+      pinPosition.y = top;
+      var left = (pin.offsetLeft - offset.x);
+      pinPosition.x = left;
+      pin.style.top = top + 'px';
+      pin.style.left = left + 'px';
     };
-    var mouseUpHandler = function () {
-      if (isPinMoved) {
-        window.advert.setPinLocation(false, current.x, current.y);
-      } else {
-        var pinLocation = window.map.getPinLocation();
-        window.advert.setPinLocation(false, pinLocation.x, pinLocation.y);
-      }
-      if (window.map.isDisabled) {
-        window.similarAdverts.showSimilarAdverts();
-        window.map.unlock();
-        window.advert.unlock();
-      }
-      pin.removeEventListener('mousemove', mouseMoveHandler);
-      pin.removeEventListener('mouseup', mouseUpHandler);
+    var mouseUpHandler = function (upEvt) {
+      upEvt.preventDefault();
+      var pinMoveEvent = new CustomEvent('pin-move', {
+        'detail': {position: pinPosition},
+        'bubbles': true,
+        'cancelable': true
+      });
+      pin.dispatchEvent(pinMoveEvent);
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
     };
-    pin.addEventListener('mousemove', mouseMoveHandler);
-    pin.addEventListener('mouseup', mouseUpHandler);
-  };
-  pin.addEventListener('mousedown', mouseDownHandler);
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
+  });
+  pin.addEventListener('mouseup', function () {
+    window.map.activate();
+  });
 })();

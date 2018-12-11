@@ -1,121 +1,118 @@
 'use strict';
 
 (function () {
-  var filterForm = document.querySelector('.map__filters');
-  var filterFormFields = filterForm.querySelectorAll('input, select');
-  var advertPinTemplate = document.querySelector('#pin').content.querySelector('button');
+  var popupTemplate = document.querySelector('#card').content.querySelector('.map__card');
+  var pinTemplate = document.querySelector('#pin').content.querySelector('button');
+  var pins = document.querySelector('.map__pins');
+  var map = window.map.canvas;
+  var filterContainer = document.querySelector('.map__filters-container');
+  var popupActive = null;
+  var pinActive;
   var similarAdverts = [];
-  var advertPins = document.querySelector('.map__pins');
-  var workspace = window.map.workspace;
-
-  var createAdvertPin = function (advert) {
-    var advertPin = advertPinTemplate.cloneNode(true);
-    advertPin.style.top = advert.location.y + 'px';
-    advertPin.style.left = advert.location.x + 'px';
-    var img = advertPin.querySelector('img');
+  var typeMap = window.utils.typeMap;
+  var keyCodeMap = window.utils.keyCodeMap;
+  var errorHandler = window.utils.errorHandler;
+  var createFeatures = function (parent, features) {
+    var destination = parent.querySelector('.popup__features');
+    if (features.length === 0) {
+      destination.remove();
+      return;
+    }
+    destination.innerHTML = '';
+    var featureTemplate = document.createElement('li');
+    featureTemplate.classList.add('popup__feature');
+    features.forEach(function (feature) {
+      var advertFeature = featureTemplate.cloneNode(true);
+      advertFeature.classList.add('popup__feature--' + feature);
+      destination.appendChild(advertFeature);
+    });
+  };
+  var createPhotos = function (parent, photos) {
+    var destination = parent.querySelector('.popup__photos');
+    if (photos.length === 0) {
+      destination.remove();
+      return;
+    }
+    var photoTemplate = destination.querySelector('.popup__photo');
+    destination.innerHTML = '';
+    photos.forEach(function (photo) {
+      var advertPhoto = photoTemplate.cloneNode(true);
+      advertPhoto.src = photo;
+      destination.appendChild(advertPhoto);
+    });
+  };
+  var closePopup = function () {
+    if (popupActive === null) {
+      return;
+    }
+    popupActive.remove();
+    popupActive = null;
+    pinActive.classList.remove('map__pin--active');
+    pinActive = null;
+    document.removeEventListener('keydown', escPressHandler);
+  };
+  var escPressHandler = window.utils.isKeyPressed(keyCodeMap.ESC, closePopup);
+  var createPopup = function (advert) {
+    var popup = popupTemplate.cloneNode(true);
+    popup.querySelector('.popup__avatar').src = advert.author.avatar;
+    popup.querySelector('.popup__title').textContent = advert.offer.title;
+    popup.querySelector('.popup__text--address').textContent = advert.offer.address;
+    popup.querySelector('.popup__text--price').textContent = advert.offer.price + '₽/ночь.';
+    popup.querySelector('.popup__type').textContent = typeMap[advert.offer.type].name;
+    popup.querySelector('.popup__text--capacity').textContent = advert.offer.rooms + ' комнаты для ' + advert.offer.guests + ' гостей';
+    popup.querySelector('.popup__text--time', 'Заезд после ' + advert.offer.checkin + ', выезд до ' + advert.offer.checkout);
+    createFeatures(popup, advert.offer.features);
+    popup.querySelector('.popup__description').textContent = advert.offer.description;
+    createPhotos(popup, advert.offer.photos);
+    var popupCloseBtn = popup.querySelector('.popup__close');
+    popupCloseBtn.addEventListener('click', function () {
+      closePopup();
+    });
+    return popup;
+  };
+  var showPopup = function (pin, advert) {
+    closePopup();
+    pin.classList.add('map__pin--active');
+    pinActive = pin;
+    popupActive = createPopup(advert);
+    map.insertBefore(popupActive, filterContainer);
+    document.addEventListener('keydown', escPressHandler);
+  };
+  var createPin = function (advert) {
+    var pin = pinTemplate.cloneNode(true);
+    pin.style.top = advert.location.y + 'px';
+    pin.style.left = advert.location.x + 'px';
+    var img = pin.querySelector('img');
     img.src = advert.author.avatar;
     img.alt = advert.offer.title;
-    advertPin.appendChild(img);
-    return advertPin;
-  };
-  var avatars = [
-    'img/avatars/user01.png',
-    'img/avatars/user02.png',
-    'img/avatars/user03.png',
-    'img/avatars/user04.png',
-    'img/avatars/user05.png',
-    'img/avatars/user06.png',
-    'img/avatars/user07.png',
-    'img/avatars/user08.png',
-  ];
-  var titles = [
-    'Большая уютная квартира',
-    'Маленькая неуютная квартира',
-    'Огромный прекрасный дворец',
-    'Маленький ужасный дворец',
-    'Красивый гостевой домик',
-    'Некрасивый негостеприимный домик',
-    'Уютное бунгало далеко от моря',
-    'Неуютное бунгало по колено в воде'
-  ];
-  var types = ['palace', 'flat', 'house', 'bungalo'];
-  var timeinList = ['12:00', '13:00', '14:00'];
-  var timeoutList = timeinList;
-  var features = ['wifi', 'dishwasher', 'parking', 'washer', 'elevator', 'conditioner'];
-  var photos = [
-    'http://o0.github.io/assets/images/tokyo/hotel1.jpg',
-    'http://o0.github.io/assets/images/tokyo/hotel2.jpg',
-    'http://o0.github.io/assets/images/tokyo/hotel3.jpg'
-  ];
-
-  var generateRandomAdvert = function (presetAvatars, presetTitles) {
-    var location = {
-      x: window.utils.getRandom(workspace.minX, workspace.maxX),
-      y: window.utils.getRandom(workspace.minY, workspace.maxY)
-    };
-    return {
-      author: {
-        avatar: window.utils.getRandomValue(presetAvatars, true)
-      },
-      offer: {
-        title: window.utils.getRandomValue(presetTitles, true),
-        address: location.x + ', ' + location.y,
-        price: window.utils.getRandom(1000, 1000000),
-        type: window.utils.getRandomValue(types),
-        rooms: window.utils.getRandom(1, 5),
-        guests: window.utils.getRandom(0, 5),
-        checkin: window.utils.getRandomValue(timeinList),
-        checkout: window.utils.getRandomValue(timeoutList),
-        features: window.utils.getRandomValues(features.slice()),
-        description: '',
-        photos: window.utils.shuffleArray(photos)
-      },
-      location: location
-    };
-  };
-  var generateRandomAdverts = function () {
-    var adverts = [];
-    var presetAvatars = avatars.slice();
-    var presetTitles = titles.slice();
-    for (var i = 0; i < 8; i++) {
-      var advert = generateRandomAdvert(presetAvatars, presetTitles);
-      adverts.push(advert);
-    }
-    return adverts;
-  };
-
-  var showSimilarAdverts = function () {
-    var adverts = generateRandomAdverts();
-    var pins = document.createDocumentFragment();
-    adverts.forEach(function (advert) {
-      var advertPin = createAdvertPin(advert);
-      advertPin.addEventListener('click', function () {
-        window.popup.showPopup(advertPin, advert);
-      });
-      pins.appendChild(advertPin);
-      similarAdverts.push(advertPin);
+    pin.appendChild(img);
+    pin.addEventListener('click', function () {
+      showPopup(pin, advert);
     });
-    advertPins.appendChild(pins);
-    window.utils.toggleFormState(filterForm, false);
-    window.utils.toggleFieldsState(filterFormFields, false);
+    return pin;
   };
-
+  var showSimilarAdverts = function (adverts) {
+    var _pins = document.createDocumentFragment();
+    adverts.forEach(function (advert) {
+      var pin = createPin(advert);
+      similarAdverts.push(pin);
+      _pins.appendChild(pin);
+    });
+    pins.appendChild(_pins);
+  };
   var clearSimilarAdverts = function () {
-    similarAdverts.forEach(function (pin) {
-      if (pin !== window.map.mainPin) {
-        pin.remove();
-      }
+    closePopup();
+    similarAdverts.forEach(function (similarAdvert) {
+      similarAdvert.remove();
     });
     similarAdverts.length = 0;
-    window.utils.toggleFormState(filterForm, true);
-    window.utils.toggleFieldsState(filterFormFields, true);
   };
-
   window.similarAdverts = {
     showSimilarAdverts: showSimilarAdverts,
     clearSimilarAdverts: clearSimilarAdverts
   };
-
-  clearSimilarAdverts();
-
+  var initialize = function () {
+    window.backend.get('https://js.dump.academy/keksobooking/data', window.data.set, errorHandler);
+  };
+  initialize();
 })();
