@@ -9,6 +9,7 @@
     evt.preventDefault();
     window.similarAdverts.clearSimilarAdverts();
     window.map.deactivate();
+    window.similarAdverts.deactivateFilter();
     window.advert.setPinPosition(window.map.getPinPosition());
     document.removeEventListener('advert-posted', advertFormHandler);
     document.removeEventListener('advert-cancel', advertFormHandler);
@@ -20,6 +21,7 @@
     window.advert.activate();
     window.advert.setPinPosition(window.map.getPinPosition());
     window.similarAdverts.showSimilarAdverts(window.data.get());
+    window.similarAdverts.activateFilter();
     document.removeEventListener('pin-move', activateMapHandler);
     document.addEventListener('pin-move', pinMoveHandler);
     document.addEventListener('advert-posted', advertFormHandler);
