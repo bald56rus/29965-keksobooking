@@ -2,16 +2,22 @@
 
 (function () {
   var QUANTITY_VISIBLE_ADVERTS = 5;
+  var DEBOUNCE_TIMEOUT = 500;
   var HousePrice = {
     LOW_MAX: 10000,
     MIDDLE_MIN: 10000,
     MIDDLE_MAX: 50000,
     HIGH_MIN: 50000
   };
+  var map = window.map.canvas;
+  var houseTypeMap = window.utils.houseTypeMap;
+  var KeyCode = window.utils.KeyCode;
+  var errorHandler = window.utils.errorHandler;
+  var shuffle = window.utils.shuffleArray;
+  var isKeyPressed = window.utils.isKeyPressed;
   var popupTemplate = document.querySelector('#card').content.querySelector('.map__card');
   var pinTemplate = document.querySelector('#pin').content.querySelector('button');
   var pins = document.querySelector('.map__pins');
-  var map = window.map.canvas;
   var filterContainer = document.querySelector('.map__filters-container');
   var filterFields = filterContainer.querySelectorAll('select, input');
   var typeFilter = filterContainer.querySelector('#housing-type');
@@ -30,10 +36,6 @@
   var popupActive = null;
   var pinActive = null;
   var similarAdverts = [];
-  var houseTypeMap = window.utils.houseTypeMap;
-  var KeyCode = window.utils.KeyCode;
-  var errorHandler = window.utils.errorHandler;
-  var shuffle = window.utils.shuffleArray;
   var createFeatures = function (parent, features) {
     var destination = parent.querySelector('.popup__features');
     if (features.length === 0) {
@@ -73,7 +75,7 @@
     pinActive = null;
     document.removeEventListener('keydown', escPressHandler);
   };
-  var escPressHandler = window.utils.isKeyPressed(KeyCode.ESC, closePopup);
+  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopup);
   var createPopup = function (advert) {
     var popup = popupTemplate.cloneNode(true);
     popup.querySelector('.popup__avatar').src = advert.author.avatar;
@@ -86,8 +88,8 @@
     createFeatures(popup, advert.offer.features);
     popup.querySelector('.popup__description').textContent = advert.offer.description;
     createPhotos(popup, advert.offer.photos);
-    var popupCloseBtn = popup.querySelector('.popup__close');
-    popupCloseBtn.addEventListener('click', function () {
+    var closeBtn = popup.querySelector('.popup__close');
+    closeBtn.addEventListener('click', function () {
       closePopup();
     });
     return popup;
@@ -179,7 +181,7 @@
     timerId = setTimeout(function () {
       clearTimeout(timerId);
       showFilteredAdverts();
-    }, 500);
+    }, DEBOUNCE_TIMEOUT);
   };
   var featuresChangeHandler = function (evt) {
     if (evt.target.checked) {

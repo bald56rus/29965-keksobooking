@@ -7,13 +7,14 @@
     '3': [1, 2, 3],
     '100': [0]
   };
-  var typeMap = window.utils.typeMap;
-  var keyCodeMap = window.utils.keyCodeMap;
-  var advertPostedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
-  var advertCancelEvent = new CustomEvent('advert-cancel', {'bubbles': true, 'cancelable': true});
+  var houseTypeMap = window.utils.houseTypeMap;
+  var KeyCode = window.utils.KeyCode;
+  var popupContainer = window.utils.popupContainer;
+  var isKeyPressed = window.utils.isKeyPressed;
+  var postedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
+  var cancelEvent = new CustomEvent('advert-cancel', {'bubbles': true, 'cancelable': true});
   var form = document.querySelector('.ad-form');
-  var url = form.action;
-  var advertFormFields = form.querySelectorAll('input, select');
+  var formFields = form.querySelectorAll('input, select');
   var location = form.querySelector('#address');
   var type = form.querySelector('#type');
   var price = form.querySelector('#price');
@@ -21,15 +22,16 @@
   var timeout = form.querySelector('#timeout');
   var roomQuantity = form.querySelector('#room_number');
   var capacity = form.querySelector('#capacity');
+  var capacityOptions = capacity.querySelectorAll('option');
   var popupTemplate = document.querySelector('#success').content.querySelector('.success');
-  var activePopup;
+  var activePopup = null;
   var errorHandler = window.utils.errorHandler;
 
   var setPinPosition = function (position) {
     location.value = position.x + ', ' + position.y;
   };
   var typeChangeHandler = function () {
-    var minPrice = typeMap[type.value].minPrice;
+    var minPrice = houseTypeMap[type.value].minPrice;
     price.min = minPrice;
     price.placeholder = minPrice;
   };
@@ -48,7 +50,7 @@
     if (allowedGuests.indexOf(parseInt(capacity.value, 10)) === -1) {
       capacity.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
     }
-    capacity.querySelectorAll('option').forEach(function (option) {
+    capacityOptions.forEach(function (option) {
       option.disabled = allowedGuests.indexOf(parseInt(option.value, 10)) < 0;
     });
   };
@@ -62,7 +64,7 @@
   var formResetHandler = function () {
     deactivateForm();
     setTimeout(function () {
-      form.dispatchEvent(advertCancelEvent);
+      form.dispatchEvent(cancelEvent);
     }, 1);
   };
   var closePopupHandler = function () {
@@ -70,20 +72,20 @@
     document.removeEventListener('click', closePopupHandler);
     document.removeEventListener('keydown', escPressHandler);
   };
-  var escPressHandler = window.utils.isKeyPressed(keyCodeMap.ESC, closePopupHandler);
+  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopupHandler);
   var advertPostedHandler = function () {
     deactivateForm();
     form.reset();
-    form.dispatchEvent(advertPostedEvent);
+    form.dispatchEvent(postedEvent);
     activePopup = popupTemplate.cloneNode(true);
-    document.querySelector('main').appendChild(activePopup);
+    popupContainer.appendChild(activePopup);
     document.addEventListener('click', closePopupHandler);
     document.addEventListener('keydown', escPressHandler);
   };
   var formSubmitHandler = function (evt) {
     evt.preventDefault();
     var advert = new FormData(form);
-    window.backend.post(url, advert, advertPostedHandler, errorHandler);
+    window.backend.post(form.action, advert, advertPostedHandler, errorHandler);
   };
   var activateForm = function () {
     typeChangeHandler();
@@ -98,13 +100,13 @@
     roomQuantity.addEventListener('change', roomQuantityChangeHandler);
     capacity.addEventListener('change', capacityChangeHandler);
     form.classList.remove('ad-form--disabled');
-    advertFormFields.forEach(function (field) {
+    formFields.forEach(function (field) {
       field.disabled = false;
     });
   };
   var deactivateForm = function () {
     form.classList.add('ad-form--disabled');
-    advertFormFields.forEach(function (field) {
+    formFields.forEach(function (field) {
       field.disabled = true;
     });
     form.removeEventListener('reset', formResetHandler);
