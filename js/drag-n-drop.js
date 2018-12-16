@@ -1,6 +1,7 @@
 'use strict';
 
 (function () {
+  var MOUSE_SHAKE_OFFSET = 5;
   var map = window.map.canvas;
   var pin = window.map.pin;
   var PinMoveArea = {
@@ -18,13 +19,16 @@
         x: startPosition.x - moveEvt.clientX,
         y: startPosition.y - moveEvt.clientY
       };
+      if (Math.abs(offset.y) < MOUSE_SHAKE_OFFSET && Math.abs(offset.x) < MOUSE_SHAKE_OFFSET) {
+        return;
+      }
       startPosition = {x: moveEvt.clientX, y: moveEvt.clientY};
       var top = (pin.offsetTop - offset.y);
+      var left = (pin.offsetLeft - offset.x);
       if (top >= PinMoveArea.MIN_Y && top <= PinMoveArea.MAX_Y) {
         position.y = top;
         pin.style.top = top + 'px';
       }
-      var left = (pin.offsetLeft - offset.x);
       if (left >= PinMoveArea.MIN_X && left <= PinMoveArea.MAX_X) {
         position.x = left;
         pin.style.left = left + 'px';
