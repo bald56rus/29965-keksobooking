@@ -8,7 +8,7 @@
     '100': [0]
   };
   var HouseTypeEnum = window.utils.HouseTypeEnum;
-  var KeyCode = window.utils.KeyCode;
+  var KeyCodeEnum = window.utils.KeyCodeEnum;
   var popupContainer = window.utils.popupContainer;
   var isKeyPressed = window.utils.isKeyPressed;
   var postedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
@@ -102,7 +102,7 @@
     document.removeEventListener('click', closePopupHandler);
     document.removeEventListener('keydown', escPressHandler);
   };
-  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopupHandler);
+  var escPressHandler = isKeyPressed(KeyCodeEnum.ESC, closePopupHandler);
   var advertPostedHandler = function () {
     deactivateForm();
     form.reset();

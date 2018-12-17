@@ -10,7 +10,7 @@
     HIGH_MIN: 50000
   };
   var HouseTypeEnum = window.utils.HouseTypeEnum;
-  var KeyCode = window.utils.KeyCode;
+  var KeyCodeEnum = window.utils.KeyCodeEnum;
   var map = window.map.canvas;
   var errorHandler = window.utils.errorHandler;
   var shuffle = window.utils.shuffleArray;
@@ -93,7 +93,7 @@
     });
     return popup;
   };
-  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopup);
+  var escPressHandler = isKeyPressed(KeyCodeEnum.ESC, closePopup);
   var showPopup = function (pin, advert) {
     closePopup();
     pin.classList.add('map__pin--active');
