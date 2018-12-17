@@ -3,15 +3,15 @@
 (function () {
   var QUANTITY_VISIBLE_ADVERTS = 5;
   var DEBOUNCE_TIMEOUT = 500;
-  var HousePrice = {
+  var HousePriceEnum = {
     LOW_MAX: 10000,
     MIDDLE_MIN: 10000,
     MIDDLE_MAX: 50000,
     HIGH_MIN: 50000
   };
-  var map = window.map.canvas;
-  var houseTypeMap = window.utils.houseTypeMap;
+  var HouseTypeEnum = window.utils.HouseTypeEnum;
   var KeyCode = window.utils.KeyCode;
+  var map = window.map.canvas;
   var errorHandler = window.utils.errorHandler;
   var shuffle = window.utils.shuffleArray;
   var isKeyPressed = window.utils.isKeyPressed;
@@ -75,14 +75,13 @@
     pinActive = null;
     document.removeEventListener('keydown', escPressHandler);
   };
-  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopup);
   var createPopup = function (advert) {
     var popup = popupTemplate.cloneNode(true);
     popup.querySelector('.popup__avatar').src = advert.author.avatar;
     popup.querySelector('.popup__title').textContent = advert.offer.title;
     popup.querySelector('.popup__text--address').textContent = advert.offer.address;
     popup.querySelector('.popup__text--price').textContent = advert.offer.price + '₽/ночь.';
-    popup.querySelector('.popup__type').textContent = houseTypeMap[advert.offer.type].name;
+    popup.querySelector('.popup__type').textContent = HouseTypeEnum[advert.offer.type.toUpperCase()].name;
     popup.querySelector('.popup__text--capacity').textContent = advert.offer.rooms + ' комнаты для ' + advert.offer.guests + ' гостей';
     popup.querySelector('.popup__text--time', 'Заезд после ' + advert.offer.checkin + ', выезд до ' + advert.offer.checkout);
     createFeatures(popup, advert.offer.features);
@@ -94,6 +93,7 @@
     });
     return popup;
   };
+  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopup);
   var showPopup = function (pin, advert) {
     closePopup();
     pin.classList.add('map__pin--active');
@@ -129,13 +129,13 @@
     }
     switch (priceFilter.value) {
       case 'low': {
-        return advert.offer.price < HousePrice.LOW_MAX;
+        return advert.offer.price < HousePriceEnum.LOW_MAX;
       }
       case 'middle': {
-        return advert.offer.price >= HousePrice.MIDDLE_MIN && advert.offer.price <= HousePrice.MIDDLE_MAX;
+        return advert.offer.price >= HousePriceEnum.MIDDLE_MIN && advert.offer.price <= HousePriceEnum.MIDDLE_MAX;
       }
       case 'high': {
-        return advert.offer.price > HousePrice.HIGH_MIN;
+        return advert.offer.price > HousePriceEnum.HIGH_MIN;
       }
       default: {
         return false;

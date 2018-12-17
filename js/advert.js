@@ -1,20 +1,20 @@
 'use strict';
 
 (function () {
-  var roomGuestCapacity = {
+  var RoomGuestCapacityEnum = {
     '1': [1],
     '2': [1, 2],
     '3': [1, 2, 3],
     '100': [0]
   };
-  var houseTypeMap = window.utils.houseTypeMap;
+  var HouseTypeEnum = window.utils.HouseTypeEnum;
   var KeyCode = window.utils.KeyCode;
   var popupContainer = window.utils.popupContainer;
   var isKeyPressed = window.utils.isKeyPressed;
   var postedEvent = new CustomEvent('advert-posted', {'bubbles': true, 'cancelable': true});
   var cancelEvent = new CustomEvent('advert-cancel', {'bubbles': true, 'cancelable': true});
   var form = document.querySelector('.ad-form');
-  var formControls = form.querySelectorAll('input, select, button');
+  var formControls = form.querySelectorAll('input, select, button, textarea');
   var avatar = form.querySelector('.ad-form-header__input');
   var avatarPreview = form.querySelector('.ad-form-header__preview').querySelector('img');
   var location = form.querySelector('#address');
@@ -30,7 +30,6 @@
   var popupTemplate = document.querySelector('#success').content.querySelector('.success');
   var activePopup = null;
   var errorHandler = window.utils.errorHandler;
-
   var setPinPosition = function (position) {
     location.value = position.x + ', ' + position.y;
   };
@@ -50,7 +49,7 @@
     });
   };
   var typeChangeHandler = function () {
-    var minPrice = houseTypeMap[type.value].minPrice;
+    var minPrice = HouseTypeEnum[type.value.toUpperCase()].minPrice;
     price.min = minPrice;
     price.placeholder = minPrice;
   };
@@ -66,7 +65,7 @@
   var validateGuests = function (disableDeniedOptions) {
     guests.setCustomValidity('');
     disableDeniedOptions = disableDeniedOptions || false;
-    var allowedGuests = roomGuestCapacity[rooms.value];
+    var allowedGuests = RoomGuestCapacityEnum[rooms.value];
     if (allowedGuests.indexOf(parseInt(guests.value, 10)) === -1) {
       guests.setCustomValidity('Необходимо выбрать значение из списка разрешенных вариантов');
     }

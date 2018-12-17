@@ -4,14 +4,14 @@
   var popupContainer = document.querySelector('main');
   var errorTemplate = document.querySelector('#error').content.querySelector('.error');
   var activePopup;
-  var KeyCode = {
+  var KeyCodeEnum = {
     ESC: 27
   };
-  var houseTypeMap = {
-    flat: {name: 'Квартира', minPrice: 1000},
-    bungalo: {name: 'Бунгало', minPrice: 0},
-    house: {name: 'Дом', minPrice: 5000},
-    palace: {name: 'Дворец', minPrice: 10000}
+  var HouseTypeEnum = {
+    FLAT: {name: 'Квартира', minPrice: 1000},
+    BUNGALO: {name: 'Бунгало', minPrice: 0},
+    HOUSE: {name: 'Дом', minPrice: 5000},
+    PALACE: {name: 'Дворец', minPrice: 10000}
   };
   var getRandom = function (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -25,7 +25,6 @@
     }
     return source;
   };
-
   var isKeyPressed = function (keyCode, handler) {
     return function (evt) {
       if (evt.keyCode === keyCode) {
@@ -38,7 +37,7 @@
     document.removeEventListener('click', closePopupHandler);
     document.removeEventListener('keydown', escPressHandler);
   };
-  var escPressHandler = isKeyPressed(KeyCode.ESC, closePopupHandler);
+  var escPressHandler = isKeyPressed(KeyCodeEnum.ESC, closePopupHandler);
   var errorHandler = function () {
     activePopup = errorTemplate.cloneNode(true);
     popupContainer.appendChild(activePopup);
@@ -47,10 +46,9 @@
     document.addEventListener('click', closePopupHandler);
     document.addEventListener('keydown', escPressHandler);
   };
-
   window.utils = {
-    KeyCode: KeyCode,
-    houseTypeMap: houseTypeMap,
+    KeyCodeEnum: KeyCodeEnum,
+    HouseTypeEnum: HouseTypeEnum,
     isKeyPressed: isKeyPressed,
     errorHandler: errorHandler,
     shuffleArray: shuffleArray,
